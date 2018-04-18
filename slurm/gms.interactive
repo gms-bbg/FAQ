@@ -121,7 +121,7 @@ set JOB=$NEWJOB
 if ($JOB == help) then
    tput clear
    echo "The syntax to execute GAMESS is"
-   echo "     gms [-l logfile] [-p CPUS] [-w dd:hh:mm:ss] jjj"
+   echo "     gms.interactive [-l logfile] [-p CPUS] [-w dd:hh:mm:ss] jjj"
    echo "where jjj is the name of your jjj.inp file, and"
    echo "   -l        gives the log file name."
    echo "   -p X      will run X compute processes.  If X exceeds the number"
@@ -134,8 +134,6 @@ if ($JOB == help) then
    echo "   -mpi      alters rungms.interactive for an MPI job"
    echo "   -sockets  alters rungms.interactive for an sockets job (default)"
    echo " "
-   echo "Other options, including GPU flags, can be displayed by 'gms -help'."
-   echo "This cluster's hardware can be displayed by 'gms -cluster'."
    exit
 endif
 #
