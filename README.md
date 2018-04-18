@@ -6,6 +6,8 @@ Feel free to edit this repository with questions and answers. I encourage the us
 
 **A.**  This repository.
 
+----
+
 **Q.**  I think scripts in GAMESS (comp, compall, lked, config, rungms and gms) are very powerful by covering a variety number of machines, communications, compilers; but it’s difficult to navigate and modify these scripts. I don’t know if we can make templates with minimum information to compile, link and run jobs using these scripts.
 
 **A.**  The `config` script exists to remove the need to modify `comp`, `compall`, and `lked` - which makes use of the `install.info` file that is generated from the `config` process.  You should not need to make any modifications to `comp`, `compall`, and `lked` unless you are adding a new target, compiler, math library, or communication library.
@@ -24,8 +26,10 @@ to see usage information.  The script will generate an `install.info`, compile `
 
 The `gms` script is specialized for a given cluster and queuing system. There is no simple template for this file.
 
+----
+
 **Q.**  Which fortran extension should be used? How does the fortran extension affect OpenMP?
 
 **A.**  A good example: https://software.intel.com/en-us/node/677900
 
-
+----
