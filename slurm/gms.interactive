@@ -1,6 +1,6 @@
 #!/bin/tcsh
 set GROUP=quantum
-set MYGROUPFOLDER=sarom-ssok1
+set MYGROUPFOLDER=$USER
 set CURRENTDIR=`pwd`
 echo CURRENT DIRECTORY IS: $CURRENTDIR
 
@@ -200,55 +200,10 @@ if ($WALL == default) then
    set WALL=24:00:00
 endif
 #
-if ($SCHED == SGE) then
- set time=(`echo $WALL | cut --delimiter=: --output-delimiter=' ' --fields 1-`)
- set ntime=$#time
- switch ($ntime)
-  case 4:
-    @ seconds = 86400 * $time[1] + 3600 * $time[2] + 60 * $time[3] + $time[4]
-    breaksw
-  case 3:
-    @ seconds =                    3600 * $time[1] + 60 * $time[2] + $time[3]
-    breaksw
-  case 2:
-    @ seconds =                                      60 * $time[1] + $time[2]
-    breaksw
-  case 1:
-    @ seconds =                                                      $time[1]
-    breaksw
-  default
-    echo Something is wrong with this time specifier: $WALL
-    echo Please enter only colon separated wall clock times,
-    echo any of    ss  or  mm:ss  or  hh:mm:ss  or  dd:hh:mm:ss is OK.
-    exit
- endsw
-endif
-#
 #    ===== next section selects scheduler and cluster dependent options
 #
 if ($SCHED == SLURM) then
     if ($NCPUS < $PPN) set PPN=$NCPUS
-endif
-#
-#  A cluster with 8-core nodes and very slow disks should
-#  try to encourage the use of AO integral direct options.
-#
-if ($CLUSTER == dynamo) then
-                   set ndir = `grep -i "dirscf=.true." $JOB.inp | wc -l`
-   if ($ndir == 0) set ndir = `grep -i "dirscf=.t."    $JOB.inp | wc -l`
-   if ($ndir == 0) set ndir = `grep -i "dirtrf=.true." $JOB.inp | wc -l`
-   if ($ndir == 0) set ndir = `grep -i "dirtrf=.t."    $JOB.inp | wc -l`
-   if ($ndir == 0) then
-      echo "   Your job does not contain a DIRSCF or DIRTRF keyword."
-      echo "   The dynamo cluster is based on SATA quality disks, which"
-      echo "   are shared by eight (8) cores.  You probably will get"
-      echo "   better wall clock times if you go AO integral direct."
-   endif
-#       likewise, the run shouldn't be excessively long.
-   if ($seconds > 604800) then
-     echo Please request no more than 7 wall clock days.
-     exit
-   endif
 endif
 #
 echo "switch ($CLUSTER)"
