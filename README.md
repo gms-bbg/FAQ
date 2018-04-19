@@ -2,6 +2,13 @@
 
 Feel free to edit this repository with questions and answers. I encourage the use of [markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet).
 
+Resources for CyEnce/SLURM
+
+*  [CyEnce Homepage](https://www.hpc.iastate.edu/guides/cyence)
+*  [CyEnce/SLURM](https://www.hpc.iastate.edu/sites/default/files/uploads/HPCHowTo/2018%20April%2011%20How%20to%20Use%20Condo-CyEnce.pdf )
+
+----
+
 **Q.**  I don’t know if we can set up a page of “frequently asked question” for GAMESS. I have posted a bunch of questions on Slack. Though all questions have been answered with very nice instructions, it can be difficult to trace back these questions and instructions after a while.
 
 **A.**  This repository.
