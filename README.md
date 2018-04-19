@@ -4,8 +4,8 @@ Feel free to edit this repository with questions and answers. I encourage the us
 
 Resources for CyEnce/SLURM
 
-*  [CyEnce Homepage](https://www.hpc.iastate.edu/guides/cyence)
-*  [CyEnce/SLURM](https://www.hpc.iastate.edu/sites/default/files/uploads/HPCHowTo/2018%20April%2011%20How%20to%20Use%20Condo-CyEnce.pdf )
+*  [Iowa State HPC Guide](https://www.hpc.iastate.edu/guides)
+*  [SLURM @ Iowa State](https://www.hpc.iastate.edu/sites/default/files/uploads/HPCHowTo/2018%20April%2011%20How%20to%20Use%20Condo-CyEnce.pdf )
 
 ----
 
