@@ -24,7 +24,7 @@ Examples:
 
 *  Add **$HOME/bin** to your path:
 
-   `export PATH=$HOME\bin:$PATH`
+   `export PATH=$HOME/bin:$PATH`
 
 *  Copy **gms.interactive** into **$HOME/bin**
 
