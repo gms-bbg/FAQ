@@ -20,13 +20,13 @@ Examples:
 # CyEnce
 *  Create a bin folder in your home directory:
 
-   `mkdir $HOME\bin`
+   `mkdir $HOME/bin`
 
-*  Add **$HOME\bin** to your path:
+*  Add **$HOME/bin** to your path:
 
    `export PATH=$HOME\bin:$PATH`
 
-*  Copy **gms.interactive** into **$HOME\bin**
+*  Copy **gms.interactive** into **$HOME/bin**
 
 *  Copy **rungms.interactive** into **$GMS_DIR** (GAMESS directory)
 
