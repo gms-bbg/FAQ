@@ -18,6 +18,7 @@ Examples:
    `gms.interactive exam01 -w 1:0:0`
 
 # CyEnce
+*  [Video walkthrough](https://www.dropbox.com/s/0jo5aufo485tb9j/gms.interactive-cyence.mp4?dl=0)
 *  Create a bin folder in your home directory:
 
    `mkdir $HOME/bin`
