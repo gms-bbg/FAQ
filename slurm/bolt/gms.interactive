@@ -1,13 +1,6 @@
 #!/bin/tcsh
-set GROUP=quantum
-set MYGROUPFOLDER=$USER
-set CURRENTDIR=`pwd`
-echo CURRENT DIRECTORY IS: $CURRENTDIR
 
-#Cluster specifics
 set SCHED=SLURM
-set CLUSTER=CyEnce
-set PPN_MAX=16
 #
 #    ===== next section parses arguments
 #
@@ -24,9 +17,9 @@ while ($#argv > 0)
         set TARGET=sockets
         breaksw
       case -q:
-  set PARTITION=$argv[1]
+        set PARTITION=$argv[1]
         shift
-  breaksw
+        breaksw
       case -l:
         set LOGFILE=$argv[1]
         shift
@@ -59,24 +52,14 @@ while ($#argv > 0)
         set XPATH=$argv[1]
         shift
         breaksw
+      case -restart:
+        set RESTARTPATH=$argv[1]
+        shift
+        breaksw
 #             next four are special file saving/reuse options.
       case -b:
         set EXTBAS=$argv[1]
         shift
-        breaksw
-      case -save30:
-        set SAVE30=true
-        breaksw
-      case -file37:
-        set FILE37=$argv[1]
-        set FILE12=$FILE37:r.civec
-        shift
-        set SAVE37=true
-        breaksw
-      case -file70:
-        set FILE70=$argv[1]
-        shift
-        set SAVE70=true
         breaksw
       default:
         if ($?JOB == 1) then
@@ -94,27 +77,24 @@ end
 #     process per node: parallelism inside node is always by threads.
 #
 #       MWS has to pick a version number
-if ($?JOB == 0)       set JOB=help
-if ($?VERNO == 0)     set VERNO=00
-if ($?LOGFILE == 0)   set LOGFILE=default
-if ($?XPATH == 0)     set XPATH=`pwd`
-if ($?NCPUS == 0)     set NCPUS=0
-if ($?WALL == 0)      set WALL=default
-if ($?HOG == 0)       set HOG=false
-if ($?TESTJOB == 0)   set TESTJOB=false
-if ($?PPN == 0)       set PPN=$PPN_MAX
-if ($?EXTBAS == 0)    set EXTBAS=/dev/null
-if ($?SAVE30 == 0)    set SAVE30=false
-if ($?SAVE37 == 0)    set SAVE37=false
-if ($?SAVE70 == 0)    set SAVE70=false
-if ($?CCMEM == 0)     set CCMEM=0
-if ($?PARTITION == 0) set PARTITION=none
-if ($?TARGET == 0)    set TARGET=sockets
+if ($?JOB == 0)         set JOB=help
+if ($?VERNO == 0)       set VERNO=00
+if ($?LOGFILE == 0)     set LOGFILE=default
+if ($?XPATH == 0)       set XPATH=`pwd`
+if ($?RESTARTPATH == 0) set RESTARTPATH=$HOME/restart
+if ($?NCPUS == 0)       set NCPUS=1
+if ($?WALL == 0)        set WALL=default
+if ($?HOG == 0)         set HOG=false
+if ($?TESTJOB == 0)     set TESTJOB=false
+if ($?PPN == 0)         set PPN=$NCPUS
+if ($?EXTBAS == 0)      set EXTBAS=/dev/null
+if ($?CCMEM == 0)       set CCMEM=0
+if ($?PARTITION == 0)   set PARTITION=none
+if ($?TARGET == 0)      set TARGET=sockets
 
 set OLDJOB=$JOB
 set NEWJOB=`echo $JOB | rev | cut -d'/' -f 1 | rev`
 set JOB=$NEWJOB
-
 #
 #    ===== next section provides some help screens, which exit.
 #
@@ -124,14 +104,11 @@ if ($JOB == help) then
    echo "     gms.interactive [-l logfile] [-p CPUS] [-w dd:hh:mm:ss] jjj"
    echo "where jjj is the name of your jjj.inp file, and"
    echo "   -l        gives the log file name."
-   echo "   -p X      will run X compute processes.  If X exceeds the number"
-   echo "             of cores per node in this cluster ($PPN_MAX), then"
-   echo "             X will be rounded downward to a multiple of $PPN_MAX,"
-   echo "             or rounded to a multiple of Y, if -ppn is selected."
-   echo "   -ppn Y    run only Y compute processes in each node.  Of course,"
-   echo "             Y cannot exceed this cluster's core/node count, $PPN_MAX."
+   echo "   -p X      will run X compute processes."
+   echo "   -ppn Y    run only Y compute processes in each node."
    echo "   -exepath  full absolute path to the folder containing GAMESS executable"
    echo "             and rungms.interactive script"
+   echo "   -restart  full absolute path to the restart folder."
    echo "   -q        partition name passed to --partition, e.g. debug"
    echo "   -w        wall clock time, as dd:hh:mm:ss (default=24:00:00=24 hrs)"
    echo "   -mpi      alters rungms.interactive for an MPI job"
@@ -166,16 +143,9 @@ endif
 #  we must know how many cores (NCPUS) to run on:
 #
 if ($NCPUS == 0) then
-   set NCPUS=$PPN_MAX
    echo -n "number of cores to use ? [$NCPUS] "
    set ans=$<
    if (null$ans != null) set NCPUS=$ans
-endif
-#
-if ($PPN > $PPN_MAX) then
-   echo "This cluster has $PPN_MAX core nodes, so -ppn cannot request more"
-   echo "than $PPN_MAX processors per node."
-   exit
 endif
 #
 if ($NCPUS < $PPN) then
@@ -207,24 +177,19 @@ if ($SCHED == SLURM) then
     if ($NCPUS < $PPN) set PPN=$NCPUS
 endif
 #
-echo "switch ($CLUSTER)"
-switch ($CLUSTER)
-   case CyEnce:
-      set USERSCR=/work/$GROUP/$MYGROUPFOLDER/restart
-      if (-d $USERSCR) then
-      else
-        echo An empty $USERSCR directory is being created for you...
-        mkdir -p $USERSCR
-        if (-d $USERSCR) then
-          echo This directory will receive .dat, .trj, .rst supplemental outputs.
-          sleep 1
-        else
-          echo Problem creating $USERSCR, no job can be submitted.
-          exit
-        endif
-      endif
-      breaksw
-endsw
+set USERSCR=$RESTARTPATH
+if (-d $USERSCR) then
+else
+  echo An empty $USERSCR directory is being created for you...
+  mkdir -p $USERSCR
+  if (-d $USERSCR) then
+    echo "This directory will receive .dat, .trj, .rst supplemental outputs."
+    sleep 1
+  else
+    echo "Problem creating $USERSCR, no job can be submitted."
+    exit
+  endif
+endif
 echo Checking for existence of various files
 #
 #    ===== next section tests existence of various files
@@ -245,42 +210,37 @@ else
    @ nerr++
 endif
 #
-if (-e /work/quantum/$MYGROUPFOLDER/restart/$JOB.dat) then
+
+echo $USERSCR
+
+if (-e $USERSCR/$JOB.dat) then
    echo You presently have a PUNCH file named $USERSCR/$JOB.dat,
-   rm -rf /work/quantum/$MYGROUPFOLDER/restart/$JOB.dat
+   rm -rf $USERSCR/$JOB.dat
 endif
 #
-if (-e /work/quantum/$MYGROUPFOLDER/restart/$JOB.trj) then
+if (-e $USERSCR/$JOB.trj) then
    echo You presently have a TRAJECT file named $USERSCR/$JOB.trj,
-   rm -rf /work/quantum/$MYGROUPFOLDER/restart/$JOB.trj
+   rm -rf $USERSCR/$JOB.trj
 endif
 #
-if (-e  /work/quantum/$MYGROUPFOLDER/restart/$JOB.rst) then
+if (-e  $USERSCR/$JOB.rst) then
    echo You presently have a RESTART file named $USERSCR/$JOB.rst,
-   rm -rf /work/quantum/$MYGROUPFOLDER/restart/$JOB.rst
+   rm -rf $USERSCR/$JOB.rst
 endif
 #
-if (-e /work/quantum/$MYGROUPFOLDER/restart/$JOB.efp) then
+if (-e $USERSCR/$JOB.efp) then
    echo You presently have a MAKEFP file named $USERSCR/$JOB.efp,
-   rm -rf /work/quantum/$MYGROUPFOLDER/restart/$JOB.efp
+   rm -rf $USERSCR/$JOB.efp
 endif
 #
 #    ===== next section prepares the job script
 #
-switch ($CLUSTER)
-  case CyEnce:
-     cp $XPATH/rungms.interactive $USERSCR/$JOB.script
-     breaksw
-  default:
-     echo "front end gms script cannot locate the back-end rungms script..."
-     exit 4
-     breaksw
-endsw
+cp $XPATH/rungms.interactive $USERSCR/$JOB.script
 #
 #    special option to execute test version, rather than production code
 #
 if ($XPATH != none) then
-   sed -e \\+/home/mike/gamess+s++$XPATH+ \
+   sed -e \\+currentdir=\`pwd\`+s++currentdir=$XPATH+ \
       $USERSCR/$JOB.script > $USERSCR/$JOB.mung
    mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
 endif
@@ -308,33 +268,6 @@ if ($EXTBAS != /dev/null) then
    endif
 endif
 #
-#    special option to save/reuse DAFL30 for spin-orbit coupling runs
-#
-if ($SAVE30 == true) then
-   sed -e /JOB.F30/s//JOB.dafl30/ \
-      $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
-endif
-#
-#    special option to save/reuse GCILIST for general CI calculations
-#    we can't test its existence as this might be the run that creates it.
-#
-if ($SAVE37 == true) then
-   sed -e \\+\$SCR/\$JOB.F12+s++$FILE12+ \
-       -e \\+\$SCR/\$JOB.F37+s++$FILE37+ \
-      $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
-endif
-#
-#    special option to save/reuse CCREST or AMPROCC, for CC restarts
-#    we can't test its existence as this might be the run that creates it.
-#
-if ($SAVE70 == true) then
-   sed -e \\+\$SCR/\$JOB.F70+s++$FILE70+ \
-      $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
-endif
-#
 #    ===== last section actually submits the run
 #
 echo Submitting GAMESS job $JOB.inp using $NCPUS cores...
@@ -359,19 +292,18 @@ if ($SCHED == SLURM) then
    #
    echo "#\!/bin/csh"                         > $USERSCR/$JOB.slurmjob
    echo "$USERSCR/$JOB.script >& $LOGFILE"   >> $USERSCR/$JOB.slurmjob
-  #echo "rm -f $USERSCR/$JOB.script"         >> $USERSCR/$JOB.slurmjob
    #
 
     if ($PARTITION != none) then
       set echo
       sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
-             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN_MAX \
+             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
              --partition=$PARTITION $USERSCR/$JOB.slurmjob
       unset echo
     else
       set echo
       sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
-             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN_MAX \
+             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
              $USERSCR/$JOB.slurmjob
       unset echo
     endif
