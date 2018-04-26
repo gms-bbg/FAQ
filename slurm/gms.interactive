@@ -207,7 +207,7 @@ set nerr=0
 if ((-e $OLDJOB.inp) || (-e tests/$JOB.inp) || (-e tests/standard/$JOB.inp)) then
 else
    echo I could not find $JOB.inp in your current directory.
-   @ nerr++
+   exit 1
 endif
 #
 
