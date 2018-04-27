@@ -278,6 +278,8 @@ echo Submitting GAMESS job $JOB.inp using $NCPUS cores...
 set FIRST=`echo $JOB | cut -b 1-1`
 set FIRST=`echo $FIRST | tr '0-9' '[Q*]'`
 set JOBNAME=$FIRST`echo $JOB | cut -b 2-15`
+set EXTRAOPTIONS=""
+if ($HOG == true) set EXTRAOPTIONS="$EXTRAOPTIONS --exclusive"
 #
 if ($SCHED == SLURM) then
    sed -e /INPUT=\$1/s//INPUT=$JOB/      \
@@ -298,12 +300,17 @@ if ($SCHED == SLURM) then
       set echo
       sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
              --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
-             --partition=$PARTITION $USERSCR/$JOB.slurmjob
+             --partition=$PARTITION \
+             --chdir=$XPATH \
+             $EXTRAOPTIONS \
+             $USERSCR/$JOB.slurmjob
       unset echo
     else
       set echo
       sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
              --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
+             --chdir=$XPATH \
+             $EXTRAOPTIONS \
              $USERSCR/$JOB.slurmjob
       unset echo
     endif
