@@ -1,5 +1,7 @@
 #!/bin/tcsh
-
+#
+# if you want to debug this file then pass "-x" to line 1
+#
 set SCHED=SLURM
 #
 #    ===== next section parses arguments
@@ -32,8 +34,8 @@ while ($#argv > 0)
         set WALL=$argv[1]
         shift
         breaksw
-      case -hog:
-        set HOG=true
+      case -exclusive:
+        set EXCLUSIVE=true
         breaksw
       case -ppn:
         set PPN=$argv[1]
@@ -84,7 +86,7 @@ if ($?XPATH == 0)       set XPATH=`pwd`
 if ($?RESTARTPATH == 0) set RESTARTPATH=$HOME/restart
 if ($?NCPUS == 0)       set NCPUS=1
 if ($?WALL == 0)        set WALL=default
-if ($?HOG == 0)         set HOG=false
+if ($?EXCLUSIVE == 0)   set EXCLUSIVE=false
 if ($?TESTJOB == 0)     set TESTJOB=false
 if ($?PPN == 0)         set PPN=$NCPUS
 if ($?EXTBAS == 0)      set EXTBAS=/dev/null
@@ -100,16 +102,37 @@ set JOB=$NEWJOB
 #
 if ($JOB == help) then
    tput clear
+
+   echo " "
+   echo "   ÛÛÛÛÛÛÛÛÛ    ÛÛÛÛÛÛÛÛÛ   ÛÛÛÛÛÛ   ÛÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛ  ÛÛÛÛÛÛÛÛÛ   ÛÛÛÛÛÛÛÛÛ "
+   echo "  ÛÛÛ°°°°°ÛÛÛ  ÛÛÛ°°°°°ÛÛÛ °°ÛÛÛÛÛÛ ÛÛÛÛÛÛ °°ÛÛÛ°°°°°Û ÛÛÛ°°°°°ÛÛÛ ÛÛÛ°°°°°ÛÛÛ"
+   echo " ÛÛÛ     °°°  °ÛÛÛ    °ÛÛÛ  °ÛÛÛ°ÛÛÛÛÛ°ÛÛÛ  °ÛÛÛ  Û ° °ÛÛÛ    °°° °ÛÛÛ    °°° "
+   echo "°ÛÛÛ          °ÛÛÛÛÛÛÛÛÛÛÛ  °ÛÛÛ°°ÛÛÛ °ÛÛÛ  °ÛÛÛÛÛÛ   °°ÛÛÛÛÛÛÛÛÛ °°ÛÛÛÛÛÛÛÛÛ "
+   echo "°ÛÛÛ    ÛÛÛÛÛ °ÛÛÛ°°°°°ÛÛÛ  °ÛÛÛ °°°  °ÛÛÛ  °ÛÛÛ°°Û    °°°°°°°°ÛÛÛ °°°°°°°°ÛÛÛ"
+   echo "°°ÛÛÛ  °°ÛÛÛ  °ÛÛÛ    °ÛÛÛ  °ÛÛÛ      °ÛÛÛ  °ÛÛÛ °   Û ÛÛÛ    °ÛÛÛ ÛÛÛ    °ÛÛÛ"
+   echo " °°ÛÛÛÛÛÛÛÛÛ  ÛÛÛÛÛ   ÛÛÛÛÛ ÛÛÛÛÛ     ÛÛÛÛÛ ÛÛÛÛÛÛÛÛÛÛ°°ÛÛÛÛÛÛÛÛÛ °°ÛÛÛÛÛÛÛÛÛ "
+   echo "   °°°°°°°°°  °°°°°   °°°°° °°°°°     °°°°° °°°°°°°°°°  °°°°°°°°°   °°°°°°°°° "
    echo "The syntax to execute GAMESS is"
-   echo "     gms.interactive [-l logfile] [-p CPUS] [-w dd:hh:mm:ss] jjj"
-   echo "where jjj is the name of your jjj.inp file, and"
+   echo " "
+   echo "   gms.interactive [-l logfile] [-p CPUS] [-w dd:hh:mm:ss] [input]"
+   echo " "
    echo "   -l        gives the log file name."
    echo "   -p X      will run X compute processes."
    echo "   -ppn Y    run only Y compute processes in each node."
    echo "   -exepath  full absolute path to the folder containing GAMESS executable"
    echo "             and rungms.interactive script"
-   echo "   -restart  full absolute path to the restart folder."
-   echo "   -q        partition name passed to --partition, e.g. debug"
+   echo "   -restart  full absolute path to the restart folder"
+   echo "   -q        partition name passed to --partition, e.g. k20"
+   echo "             ------------------------------------------------"
+   echo "             queue names - description"
+   echo "             ------------------------------------------------"
+   echo "             compute     - any computing node that fits -ppn"
+   echo "             k20         - sandybridge + nvidia k20 gpu"
+   echo "             k40         - sandybridge + nvidia k40 gpu"
+   echo "             k80         - sandybridge + nvidia k80 gpu"
+   echo "             amd         - epyc 2 x 32 core (64 cores)"
+   echo "             haswell     - haswell 2 x 18 core (36 cores)"
+   echo " "
    echo "   -w        wall clock time, as dd:hh:mm:ss (default=24:00:00=24 hrs)"
    echo "   -mpi      alters rungms.interactive for an MPI job"
    echo "   -sockets  alters rungms.interactive for an sockets job (default)"
@@ -204,7 +227,7 @@ echo Checking for existence of various files
 #
 set nerr=0
 #
-if ((-e $OLDJOB.inp) || (-e tests/$JOB.inp) || (-e tests/standard/$JOB.inp)) then
+if (-e $OLDJOB.inp) then
 else
    echo I could not find $JOB.inp in your current directory.
    exit 1
@@ -271,50 +294,29 @@ endif
 #    ===== last section actually submits the run
 #
 echo Submitting GAMESS job $JOB.inp using $NCPUS cores...
-#
-#    ensure we have a job name that does not begin with a number,
-#    and does not exceed 15 bytes.
-#
 set FIRST=`echo $JOB | cut -b 1-1`
 set FIRST=`echo $FIRST | tr '0-9' '[Q*]'`
 set JOBNAME=$FIRST`echo $JOB | cut -b 2-15`
-set EXTRAOPTIONS=""
-if ($HOG == true) set EXTRAOPTIONS="$EXTRAOPTIONS --exclusive"
+set EXTRAOPTIONS="--chdir=$XPATH"
+if ($EXCLUSIVE == true) set EXTRAOPTIONS="$EXTRAOPTIONS --exclusive"
+if ($PARTITION != none) set EXTRAOPTIONS="$EXTRAOPTIONS --partition=$PARTITION"
 #
 if ($SCHED == SLURM) then
-   sed -e /INPUT=\$1/s//INPUT=$JOB/      \
-       -e /VERNO=\$2/s//VERNO=$VERNO/    \
-       -e /NCPUS=\$3/s//NCPUS=$NCPUS/    \
-       -e /PPN=\$4/s//PPN=$PPN/          \
-       -e /\#OVERRIDE\ TARGET/s//set\ TARGET=$TARGET/ \
-           $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   sed -i "s|#OVERRIDE USERSCR|set USERSCR=$USERSCR|g" $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE INPUT|set INPUT=$OLDJOB\.inp|g" $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE VERNO|set VERNO=$VERNO|g" $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE NCPUS|set NCPUS=$NCPUS|g" $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE PPN|set PPN=$PPN|g" $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE TARGET|set TARGET=$TARGET|g" $USERSCR/$JOB.script
    chmod 755 $USERSCR/$JOB.script
    #
    echo "#\!/bin/csh"                         > $USERSCR/$JOB.slurmjob
    echo "$USERSCR/$JOB.script >& $LOGFILE"   >> $USERSCR/$JOB.slurmjob
    #
-
-    if ($PARTITION != none) then
-      set echo
-      sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
-             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
-             --partition=$PARTITION \
-             --chdir=$XPATH \
-             $EXTRAOPTIONS \
-             $USERSCR/$JOB.slurmjob
-      unset echo
-    else
-      set echo
-      sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
-             --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
-             --chdir=$XPATH \
-             $EXTRAOPTIONS \
-             $USERSCR/$JOB.slurmjob
-      unset echo
-    endif
-    sleep 2
+   sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
+          --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
+          $EXTRAOPTIONS \
+          $USERSCR/$JOB.slurmjob
+   unset echo
 #   rm $USERSCR/$JOB.slurmjob
 endif
 #
