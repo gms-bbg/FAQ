@@ -65,4 +65,7 @@ You would change it to:
 ```
 setenv GMS_MKL_VERNO       12-so
 ```
+
+And re-attempt the linking again with either `lked` or `make`.
+
 ----
