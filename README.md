@@ -40,3 +40,29 @@ The `gms` script is specialized for a given cluster and queuing system. There is
 **A.**  A good example: https://software.intel.com/en-us/node/677900
 
 ----
+**Q.**  How do I resolve the following linking error for GAMESS?
+```
+mkl_semaphore.c:(.text+0x123): undefined reference to `dlopen'
+mkl_semaphore.c:(.text+0x152): undefined reference to `dlsym'
+...
+mkl_memory.c:(.text+0x5b9): undefined reference to `dlopen'
+mkl_memory.c:(.text+0x5da): undefined reference to `dlsym'
+...
+load_library.c:(.text+0x1cd): undefined reference to `dlopen'
+load_library.c:(.text+0x1ef): undefined reference to `dlvsym'
+...
+more undefined references to `dlvsym' follow
+```
+
+**A.**  Hardlinking appears to be the issue. You can switch to soft-linking the Intel math library in GAMESS by adding `-so` to the end of the `setenv GMS_MKL_VERNO` line in **install.info**.
+
+For example if the line reads:
+```
+setenv GMS_MKL_VERNO       12
+```
+
+You would change it to:
+```
+setenv GMS_MKL_VERNO       12-so
+```
+----
