@@ -69,3 +69,28 @@ setenv GMS_MKL_VERNO       12-so
 And re-attempt the linking again with either `lked` or `make`.
 
 ----
+**Q.** OpenMP sentinels?
+
+**A.**
+http://man7.org/linux/man-pages/man1/gfortran.1.html
+
+```
+       -fopenacc
+           Enable the OpenACC extensions.  This includes OpenACC "!$acc"
+           directives in free form and "c$acc", *$acc and "!$acc" directives
+           in fixed form, "!$" conditional compilation sentinels in free
+           form and "c$", "*$" and "!$" sentinels in fixed form, and when
+           linking arranges for the OpenACC runtime library to be linked in.
+
+           Note that this is an experimental feature, incomplete, and
+           subject to change in future versions of GCC.  See
+           <https://gcc.gnu.org/wiki/OpenACC > for more information.
+
+       -fopenmp
+           Enable the OpenMP extensions.  This includes OpenMP "!$omp"
+           directives in free form and "c$omp", *$omp and "!$omp" directives
+           in fixed form, "!$" conditional compilation sentinels in free
+           form and "c$", "*$" and "!$" sentinels in fixed form, and when
+           linking arranges for the OpenMP runtime library to be linked in.
+           The option -fopenmp implies -frecursive.
+```
