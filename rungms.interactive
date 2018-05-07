@@ -45,7 +45,7 @@ else if ($SCHED == PBS) then
    uniq $PBS_NODEFILE
 else if ($SCHED == SLURM) then
    echo "SLURM has assigned the following compute nodes to this run:"
-   scontrol show hostnames $SLURM_JOB_NODELIST | sort | uniq
+   scontrol show hostname | uniq
 else
    echo "No scheduler so we must be running locally on "`hostname`
 endif
@@ -78,7 +78,6 @@ else
      endif
   else
      set SCR=`pwd`/scratch
-     #OVERRIDE SCRATCH
   endif
 endif
 # Create it if it doesnt exist
@@ -109,6 +108,9 @@ set GMSPATH=$currentdir
 #OVERRIDE GMSPATH
 #
 set INPUT=$1 # name of the input file xxx.inp, give only the xxx part
+#OVERRIDE INPUT
+
+echo Input file supplied : $INPUT
 
 if ($INPUT:r.inp != $INPUT) set INPUT=$1.inp
 
@@ -122,6 +124,9 @@ set NNODES=1    # we are running on a single node
 # provide defaults if last two arguments are not given to this script
 if (null$VERNO == null) set VERNO=00
 if (null$NCPUS == null) set NCPUS=1
+#
+# Sarom
+env
 #
 #  ---- the top third of the script is input and other file assignments ----
 #
@@ -148,7 +153,7 @@ set JOB=`basename $INPUT`
 if ($JOB:r.inp == $JOB) then
   set JOB=$JOB:r      # strip off possible .inp
 # All previous $JOB related files in the scratch directory is deleted.
-  rm -fv $SCR/$JOB*
+  rm -fv $SCR/$JOB.*
 endif
 #
 echo "Copying input file $JOB.inp to your run's scratch directory..."
@@ -530,14 +535,13 @@ if ($TARGET == mpi) then
      set NNODES=`wc -l $HOSTFILE`
      set NNODES=$NNODES[1]
    else if ($SCHED == SLURM) then
-     scontrol show hostnames $SLURM_JOB_NODELIST | sort | uniq > $HOSTFILE
+     scontrol show hostname | uniq > $HOSTFILE
      set NNODES=`wc -l $HOSTFILE`
      set NNODES=$NNODES[1]
    else
      echo `hostname` >> $HOSTFILE
      set NNODES=1
    endif
-
    #           uncomment next lines if you need to debug host configuration.
    echo '-----debug----'
    echo HOSTFILE $HOSTFILE contains
@@ -877,8 +881,22 @@ if ($TARGET == ga) then
    if (-e $HOSTFILE) rm $HOSTFILE
    touch $HOSTFILE
    #
-   echo `hostname` >> $HOSTFILE
-   set NNODES=1
+   if ($SCHED == SGE) then
+      uniq $TMPDIR/machines $HOSTFILE
+      set NNODES=`wc -l $HOSTFILE`
+      set NNODES=$NNODES[1]
+   else if ($SCHED == PBS) then
+     uniq $PBS_NODEFILE $HOSTFILE
+     set NNODES=`wc -l $HOSTFILE`
+     set NNODES=$NNODES[1]
+   else if ($SCHED == SLURM) then
+     scontrol show hostname | uniq > $HOSTFILE
+     set NNODES=`wc -l $HOSTFILE`
+     set NNODES=$NNODES[1]
+   else
+     echo `hostname` >> $HOSTFILE
+     set NNODES=1
+   endif
    #           uncomment next lines if you need to debug host configuration.
    echo '-----debug----'
    echo HOSTFILE $HOSTFILE contains
