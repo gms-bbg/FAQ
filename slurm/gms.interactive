@@ -12,8 +12,14 @@ while ($#argv > 0)
    set val=$argv[1]
    shift
    switch ($val)
+      case -y:
+        set OVERWRITE=true
+        breaksw
       case -mpi:
         set TARGET=mpi
+        breaksw
+      case -ga:
+        set TARGET=ga
         breaksw
       case -sockets:
         set TARGET=sockets
@@ -70,6 +76,9 @@ while ($#argv > 0)
         else
            set JOB=$val
            if ($JOB =~ *.inp) set JOB=$JOB:r
+           set inputfilename=`basename $JOB.inp`
+           if ($inputfilename =~ *.inp) set inputfilename=$inputfilename:r
+           if ($JOB == $inputfilename) set JOB=`pwd`/$JOB
         endif
         breaksw
    endsw
@@ -91,10 +100,12 @@ if ($?TESTJOB == 0)     set TESTJOB=false
 if ($?PPN == 0)         set PPN=$NCPUS
 if ($?EXTBAS == 0)      set EXTBAS=/dev/null
 if ($?CCMEM == 0)       set CCMEM=0
-if ($?PARTITION == 0)   set PARTITION=none
+if ($?PARTITION == 0)   set PARTITION=compute
 if ($?TARGET == 0)      set TARGET=sockets
+if ($?OVERWRITE == 0)   set OVERWRITE=false
 
 set OLDJOB=$JOB
+set LONGJOBNAME=`echo $OLDJOB | sed "s/\//_/g"`
 set NEWJOB=`echo $JOB | rev | cut -d'/' -f 1 | rev`
 set JOB=$NEWJOB
 #
@@ -147,20 +158,26 @@ endif
 if ($LOGFILE == default) then
    set LOGFILE=$JOB.log
    echo -n "output file name? [$LOGFILE] "
+   set LOGFILE=`pwd`/$JOB.log
    set ans=$<
    if (null$ans != null) set LOGFILE=$ans
 endif
 #
 if (-e $LOGFILE) then
-   echo -n "$LOGFILE already exists.  OK to delete the old one? [y] "
-   set ans=$<
-   if (null$ans == null) set ans=y
-   if ($ans == y) then
-      rm $LOGFILE
+   if ($OVERWRITE == false) then
+     echo -n "$LOGFILE already exists.  OK to delete the old one? [y] "
+     set ans=$<
+     if (null$ans == null) set ans=y
+     if ($ans == y) then
+       rm $LOGFILE
+     else
+       echo "Exiting, so you can think about your old log file's value."
+       exit
+     endif
    else
-      echo "Exiting, so you can think about your old log file's value."
-      exit
-   endif
+     echo "OVERWRITE MODE! Removing existing log file $LOGFILE"
+     rm $LOGFILE
+   endif 
 endif
 #
 #  we must know how many cores (NCPUS) to run on:
@@ -258,14 +275,14 @@ endif
 #
 #    ===== next section prepares the job script
 #
-cp $XPATH/rungms.interactive $USERSCR/$JOB.script
+cp $XPATH/rungms.interactive $USERSCR/$LONGJOBNAME.script
 #
 #    special option to execute test version, rather than production code
 #
 if ($XPATH != none) then
    sed -e \\+currentdir=\`pwd\`+s++currentdir=$XPATH+ \
-      $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
+      $USERSCR/$LONGJOBNAME.script > $USERSCR/$JOB.mung
+   mv $USERSCR/$JOB.mung $USERSCR/$LONGJOBNAME.script
 endif
 #
 #    special option to hack in the desired node memory for LIBCCHEM,
@@ -273,8 +290,8 @@ endif
 #
 if ($CCMEM != 0) then
    sed -e /memory=6g/s//memory=$CCMEM/ \
-      $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-   mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
+      $USERSCR/$LONGJOBNAME.script > $USERSCR/$JOB.mung
+   mv $USERSCR/$JOB.mung $USERSCR/$LONGJOBNAME.script
 endif
 #
 #    special option to read user-specified external basis set library
@@ -282,8 +299,8 @@ endif
 if ($EXTBAS != /dev/null) then
    if (-e $EXTBAS) then
       sed -e \\+EXTBAS\ /dev/null+s++EXTBAS\ $EXTBAS+ \
-         $USERSCR/$JOB.script > $USERSCR/$JOB.mung
-      mv $USERSCR/$JOB.mung $USERSCR/$JOB.script
+         $USERSCR/$LONGJOBNAME.script > $USERSCR/$JOB.mung
+      mv $USERSCR/$JOB.mung $USERSCR/$LONGJOBNAME.script
    else
       echo Your external basis set file $EXTBAS does not exist.
       echo Please provide the correct fully qualified path name to this file.
@@ -302,22 +319,22 @@ if ($EXCLUSIVE == true) set EXTRAOPTIONS="$EXTRAOPTIONS --exclusive"
 if ($PARTITION != none) set EXTRAOPTIONS="$EXTRAOPTIONS --partition=$PARTITION"
 #
 if ($SCHED == SLURM) then
-   sed -i "s|#OVERRIDE INPUT|set INPUT=$OLDJOB\.inp|g" $USERSCR/$JOB.script
-   sed -i "s|#OVERRIDE VERNO|set VERNO=$VERNO|g" $USERSCR/$JOB.script
-   sed -i "s|#OVERRIDE NCPUS|set NCPUS=$NCPUS|g" $USERSCR/$JOB.script
-   sed -i "s|#OVERRIDE PPN|set PPN=$PPN|g" $USERSCR/$JOB.script
-   sed -i "s|#OVERRIDE TARGET|set TARGET=$TARGET|g" $USERSCR/$JOB.script
-   chmod 755 $USERSCR/$JOB.script
+   sed -i "s|#OVERRIDE INPUT|set INPUT=$OLDJOB\.inp|g" $USERSCR/$LONGJOBNAME.script
+   sed -i "s|#OVERRIDE VERNO|set VERNO=$VERNO|g" $USERSCR/$LONGJOBNAME.script
+   sed -i "s|#OVERRIDE NCPUS|set NCPUS=$NCPUS|g" $USERSCR/$LONGJOBNAME.script
+   sed -i "s|#OVERRIDE PPN|set PPN=$PPN|g" $USERSCR/$LONGJOBNAME.script
+   sed -i "s|#OVERRIDE TARGET|set TARGET=$TARGET|g" $USERSCR/$LONGJOBNAME.script
+   chmod 755 $USERSCR/$LONGJOBNAME.script
    #
-   echo "#\!/bin/csh"                         > $USERSCR/$JOB.slurmjob
-   echo "$USERSCR/$JOB.script >& $LOGFILE"   >> $USERSCR/$JOB.slurmjob
+   echo "#\!/bin/csh"                         > $USERSCR/$LONGJOBNAME.slurmjob
+   echo "$USERSCR/$LONGJOBNAME.script >& $LOGFILE"   >> $USERSCR/$LONGJOBNAME.slurmjob
    #
    sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
           --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
           $EXTRAOPTIONS \
-          $USERSCR/$JOB.slurmjob
+          $USERSCR/$LONGJOBNAME.slurmjob
    unset echo
-#   rm $USERSCR/$JOB.slurmjob
+#   rm $USERSCR/$LONGJOBNAME.slurmjob
 endif
 #
 exit
