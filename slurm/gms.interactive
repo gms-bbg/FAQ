@@ -76,9 +76,9 @@ while ($#argv > 0)
         else
            set JOB=$val
            if ($JOB =~ *.inp) set JOB=$JOB:r
-           set inputfilename=`basename $JOB.inp`
-           if ($inputfilename =~ *.inp) set inputfilename=$inputfilename:r
-           if ($JOB == $inputfilename) set JOB=`pwd`/$JOB
+           set inputfileabsolutepath=`readlink -f $JOB.inp`
+           set JOB=$inputfileabsolutepath
+           set JOB=$JOB:r
         endif
         breaksw
    endsw
