@@ -161,6 +161,8 @@ if ($LOGFILE == default) then
    set LOGFILE=`pwd`/$JOB.log
    set ans=$<
    if (null$ans != null) set LOGFILE=$ans
+else
+   if ($LOGFILE == $JOB.log) set LOGFILE=`pwd`/$JOB.log
 endif
 #
 if (-e $LOGFILE) then
