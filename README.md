@@ -101,3 +101,6 @@ http://man7.org/linux/man-pages/man1/gfortran.1.html
 *  Comment out `//renorm()` on **line 129** in `libint/include/libtin2/shell.h`
 *  Inside the `libcchem` folder run:
    *  `make && make install`
+*  Inside the `$GMS_DIR` folder run:
+   *  `make`
+*  Try the libcchem run again.
