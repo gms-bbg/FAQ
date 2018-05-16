@@ -94,3 +94,13 @@ http://man7.org/linux/man-pages/man1/gfortran.1.html
            linking arranges for the OpenMP runtime library to be linked in.
            The option -fopenmp implies -frecursive.
 ```
+----
+**Q.** Why am I getting inaccurate results for LIBCCHEM runs using LIBINT?
+
+**A.** The issue is tied to the renormalization.  
+*  Comment out `//renorm()` on **line 129** in `libint/include/libtin2/shell.h`
+*  Inside the `libcchem` folder run:
+   *  `make && make install`
+*  Inside the `$GMS_DIR` folder run:
+   *  `make`
+*  Try the libcchem run again.
