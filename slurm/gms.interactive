@@ -204,8 +204,14 @@ else
    set WHOLENODE=true
 endif
 
+@ zz = $PPN * 2
+set PPN2 = $zz
+
+if ($TARGET == ga) set PPN2 = $PPN
+
 unset xx
 unset yy
+unset zz
 #
 #  we must know the wall clock time limit:
 #
@@ -331,8 +337,9 @@ if ($SCHED == SLURM) then
    echo "#\!/bin/csh"                         > $USERSCR/$LONGJOBNAME.slurmjob
    echo "$USERSCR/$LONGJOBNAME.script >& $LOGFILE"   >> $USERSCR/$LONGJOBNAME.slurmjob
    #
+   set echo
    sbatch -o $LOGFILE --no-requeue --job-name=$JOBNAME \
-          --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN \
+          --nodes=$NNODES --time=$WALL --ntasks-per-node=$PPN2 \
           $EXTRAOPTIONS \
           $USERSCR/$LONGJOBNAME.slurmjob
    unset echo
