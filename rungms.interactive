@@ -2,8 +2,8 @@
 #
 # Clean up any pre-existing semaphores
 #
-if ( -f $HOME/bin/my_ipcrm ) then
-  $HOME/bin/my_ipcrm
+if ( -f /usr/local/bin/my_ipcrm ) then
+  /usr/local/bin/my_ipcrm
 endif
 #
 # Grab the path to the current directory
