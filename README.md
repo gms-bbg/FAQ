@@ -104,3 +104,26 @@ http://man7.org/linux/man-pages/man1/gfortran.1.html
 *  Inside the `$GMS_DIR` folder run:
    *  `make`
 *  Try the libcchem run again.
+----
+**Q.** I get the following error: `semget errno=ENOSPC -- check system limit for sysv semaphores.`
+
+**A.** Increase the semaphore limits for the max number of arrays.
+
+You can check the current limit by issuing:
+
+`ipcs -l`
+
+You can change the limits (as sudo or root by doing) replacing:
+
+```
+MAX_SEMAPHORE_PER_ARRAY_VALUE
+MAX_SEMAPHORE_SYSTEM_WIDE
+MAX_OPS_PER_SEMO_CALL
+MAX_NUMBER_OF_ARRAYS
+```
+
+below with the numeric values you desire.
+
+`printf 'MAX_SEMAPHORE_PER_ARRAY_VALUE\tMAX_SEMAPHORE_SYSTEM_WIDE\tMAX_OPS_PER_SEMO_CALL\tMAX_NUMBER_OF_ARRAYS' >/proc/sys/kernel/sem`
+
+In this case increasing the value for `MAX_NUMBER_OF_ARRAYS`.
