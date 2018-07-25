@@ -127,3 +127,31 @@ below with the numeric values you desire.
 `printf 'MAX_SEMAPHORE_PER_ARRAY_VALUE\tMAX_SEMAPHORE_SYSTEM_WIDE\tMAX_OPS_PER_SEMO_CALL\tMAX_NUMBER_OF_ARRAYS' >/proc/sys/kernel/sem`
 
 In this case increasing the value for `MAX_NUMBER_OF_ARRAYS`.
+
+**OR**
+
+```
+sudo sysctl -w kernel.sem="496 32767 256 512"
+```
+
+which sets:
+
+```
+ ------ Messages Limits --------
+max queues system wide = 32768
+max size of message (bytes) = 8192
+default max size of queue (bytes) = 16384
+
+------ Shared Memory Limits --------
+max number of segments = 4096
+max seg size (kbytes) = 18014398509465599
+max total shared memory (kbytes) = 18014398442373116
+min seg size (bytes) = 1
+
+------ Semaphore Limits --------
+max number of arrays = 512
+max semaphores per array = 496
+max semaphores system wide = 32767
+max ops per semop call = 256
+semaphore max value = 32767
+```
