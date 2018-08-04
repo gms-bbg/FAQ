@@ -1,0 +1,8 @@
+  ```fortran
+        COMMON /INFOA/ NAT,ICH,MUL,NUM,NQMT,NE,NA,NB,
+     *               ZAN(MXATM),C(3,MXATM),IAN(MXATM)
+
+      INTEGER NAT,ICH,MUL,NUM,NQMT,NE,NA,NB
+      DOUBLE PRECISION ZAN, C
+      INTEGER IAN
+  ```
