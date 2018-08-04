@@ -15,3 +15,5 @@ It is intended to help developers adhere to the coding policy of `IMPLICIT NONE`
        <TYPE> <VARIABLE(S)>
        ```
     ```
+
+*  Variable declarations should follow the same order as they appear in the COMMON block list.
