@@ -155,3 +155,14 @@ max semaphores system wide = 32767
 max ops per semop call = 256
 semaphore max value = 32767
 ```
+----
+**Q.** None of the GAMESS scripts work on my cluster.
+
+**A.** Several possible solutions:
+
+*  Check that `csh` or `tcsh` is installed on your system.
+    *  Often times the C shell is not installed by default.
+*  Try changing the first line of each script from `#!/bin/csh` to `#!/bin/tcsh`
+    *  `csh` may not exist on your system but `tcsh` may be available.
+*  Try adding a `-f` to the first line of each script: `#!/bin/csh -f` or `#!/bin/tcsh -f`
+    *  It is possible that your local or system-wide .cshrc file is causing problems.  The `-f` will tell shell to not load or startup and resource files.
