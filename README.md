@@ -166,3 +166,7 @@ semaphore max value = 32767
     *  `csh` may not exist on your system but `tcsh` may be available.
 *  Try adding a `-f` to the first line of each script: `#!/bin/csh -f` or `#!/bin/tcsh -f`
     *  It is possible that your local or system-wide .cshrc file is causing problems.  The `-f` will tell shell to not load or startup and resource files.
+    
+**Q.** How do I run the validation *.json files?
+
+**A.** Resources for this are in: https://github.com/gms-bbg/test-validation 
