@@ -170,3 +170,7 @@ semaphore max value = 32767
 **Q.** How do I run the validation *.json files?
 
 **A.** Resources for this are in: https://github.com/gms-bbg/test-validation 
+
+**Q.** I am running into a compilation problem of boost while building libcchem
+
+**A.** This could be solved by going to /libcchem/boost and commenting out lines 27 and 28 in the Makefile
