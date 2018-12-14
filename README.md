@@ -178,3 +178,13 @@ semaphore max value = 32767
 **A.** This could be solved by going to /libcchem/boost and commenting out lines 27 and 28 in the Makefile
 
 ----
+
+**Q.** GAMESS builds fine, but when I try to run an input file that I copied from a different computer to a Linux cluster, I get very strange errors in the ouput like
+```
+  *** ERROR, ILLEGAL POINT GROUP=C1
+    CHOSEN.
+ ```
+
+**A.** This could be due to copying the file from a Windows machine to a Linux machine. The line breaks are different in Windows and Linux, so the input file might not be read in by GAMESS properly. Invoking the program `dos2unix file.inp` can often fix the issue.  
+
+----
