@@ -196,7 +196,7 @@ There are various options, depending on the type of calculation you're running a
 
 ```
 - set NPRINT=-5 in $CONTRL
-- set MEM10=7000000 in $SYSTEM (to get a better estimate of what to puMEM10, do a run, and 
+- set MEM10=7000000 in $SYSTEM (to get a better estimate of what value to use for MEM10, do a run, and 
   look at the bottom of the file for "In-memory F10 used    125262 words out of    7000000 allocated."
   This puts .F10 file in memory, so it isn't written to disk.)
 - set MODIO=31 in $SYSTEM 
