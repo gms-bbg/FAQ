@@ -188,3 +188,19 @@ semaphore max value = 32767
 **A.** This could be due to copying the file from a Windows machine to a Linux machine. The line breaks are different in Windows and Linux, so the input file might not be read in by GAMESS properly. Invoking the program `dos2unix file.inp` can often fix the issue.  
 
 ----
+
+**Q.** How can I reduce file I/O in GAMESS runs?
+
+**A.** 
+There are various options, depending on the type of calculation you're running and what output you need. All of these are documented in INPUT.DOC, but a brief overview is below.
+
+```
+- set NPRINT=-5 in $CONTRL
+- set MEM10=7000000 in $SYSTEM (to get a better estimate of what to puMEM10, do a run, and look at the bottom of the file for "In-memory F10 used    125262 words out of    7000000 allocated." This puts .F10 file in memory, so it isn't written to disk.)
+- set MODIO=31 in $SYSTEM 
+- set DIRSCF=.t. in $SCF (This avoids writing integrals to disk and opening .F08 file.
+- set NPUNCH=0 in $SCF
+- set NPUN=-2 in $STATPT
+```
+
+----
