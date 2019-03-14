@@ -206,3 +206,9 @@ There are various options, depending on the type of calculation you're running a
 ```
 
 ----
+**Q.** I am trying to run RI-MP2 in GAMESS (for example [this uracil input](https://github.com/gms-bbg/performance/blob/master/rhf-rimp2-mpiomp-cct_acct-energy/x-0592-s66-uracil-uracil-bp-rhf-rimp2-mpiomp-cct_acct.inp)) with the OpenMP/MPI build enabled (by changing `GMS_OPENMP` to `true` in install.info and Makefile).  I get a segfault or stack error or other strange memory error.   
+
+**A.** 
+This could happen for a variety of reasons, but one thing to try is increasing the OpenMP thread stack size. This can be done by setting the environment variable `OMP_STACKSIZE` to a large value in your runscript or environment. For example, in bash: `export OMP_STACKSIZE=2000M`. `KMP_STACKSIZE` can also be set if the Intel OpenMP runtime is used. `GOMP_STACKSIZE` is similar environment variable.
+
+----
