@@ -42,7 +42,7 @@ Examples:
 
    `gms.interactive exam01 -w 1:0:0`
 
-# CyEnce
+# CyEnce / Condo / Most Linux systems
 *  Create a bin folder in your home directory:
 
    `mkdir $HOME/bin`
